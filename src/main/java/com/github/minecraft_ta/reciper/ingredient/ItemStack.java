@@ -1,8 +1,8 @@
 package com.github.minecraft_ta.reciper.ingredient;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.Objects;
 
-public class IngredientStack {
+public class ItemStack {
 
     private final String ingredientName;
     private final String label;
@@ -10,7 +10,7 @@ public class IngredientStack {
     private final int amount;
     private final String nbt;
 
-    public IngredientStack(String ingredientName, String label, int meta, int amount, String nbt) {
+    public ItemStack(String ingredientName, String label, int meta, int amount, String nbt) {
         this.ingredientName = ingredientName;
         this.label = label;
         this.meta = meta;
@@ -36,5 +36,21 @@ public class IngredientStack {
 
     public String getNbt() {
         return nbt;
+    }
+
+    @Override
+    public String toString() {
+        return "ItemStack{" +
+                "ingredientName='" + ingredientName + '\'' +
+                ", label='" + label + '\'' +
+                ", meta=" + meta +
+                ", amount=" + amount +
+                ", nbt='" + nbt + '\'' +
+                '}';
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.ingredientName, this.meta, this.nbt);
     }
 }
