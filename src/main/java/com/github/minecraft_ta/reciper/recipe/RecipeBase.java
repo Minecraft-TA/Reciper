@@ -4,17 +4,11 @@ import com.github.minecraft_ta.reciper.ingredient.ItemStack;
 
 public abstract class RecipeBase implements IRecipe {
 
-    protected final ItemStack[] inputs;
+    protected ItemStack[] inputs;
 
-    protected final ItemStack[] outputs;
+    protected ItemStack[] outputs;
 
-    protected final ItemStack[] catalysts;
-
-    protected RecipeBase(ItemStack[] inputs, ItemStack[] outputs, ItemStack[] catalysts) {
-        this.inputs = inputs;
-        this.outputs = outputs;
-        this.catalysts = catalysts;
-    }
+    protected ItemStack[] catalysts;
 
     public ItemStack[] getInputs() {
         return inputs;

@@ -1,8 +1,11 @@
 package com.github.minecraft_ta.reciper;
 
+import com.github.minecraft_ta.reciper.recipe.IRecipe;
+import com.github.minecraft_ta.reciper.recipe.RecipeFactory;
 import com.github.minecraft_ta.reciper.registry.RecipeRegistry;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 public class Reciper {
     public static void main(String[] args) {
@@ -13,4 +16,11 @@ public class Reciper {
         long endTime = System.currentTimeMillis();
         System.out.println("Time taken: " + (endTime - startTime) + "ms");
     }
+
+
+    public void registerRecipes(String identifier, Supplier<IRecipe> recipeSupplier) {
+        RecipeFactory.registerRecipe(identifier, recipeSupplier);
+    }
+
+
 }
