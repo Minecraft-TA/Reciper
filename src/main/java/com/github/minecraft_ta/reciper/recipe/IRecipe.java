@@ -1,5 +1,7 @@
 package com.github.minecraft_ta.reciper.recipe;
 
+import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -12,7 +14,7 @@ public interface IRecipe {
      *
      * @param inputStream The input stream to load from.
      */
-    void loadRecipe(InputStream inputStream);
+    void loadRecipe(DataInputStream inputStream) throws IOException;
 
 
 }

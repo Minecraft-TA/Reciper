@@ -1,12 +1,13 @@
 package com.github.minecraft_ta.reciper.recipe;
 
-import java.io.InputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
 
 public class ShapelessRecipe extends RecipeBase {
 
 
     @Override
-    public void loadRecipe(InputStream inputStream) {
+    public void loadRecipe(DataInputStream inputStream) throws IOException {
 
     }
 }
