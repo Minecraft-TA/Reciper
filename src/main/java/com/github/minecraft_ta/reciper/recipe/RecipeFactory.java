@@ -14,6 +14,7 @@ public class RecipeFactory {
 
     static {
         recipeMap.put("shaped", ShapedRecipe::new);
+        recipeMap.put("shaped_ore", ShapedOreRecipe::new);
         recipeMap.put("shapeless", ShapelessRecipe::new);
     }
 
