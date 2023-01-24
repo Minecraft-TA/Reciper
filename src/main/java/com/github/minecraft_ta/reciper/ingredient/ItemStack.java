@@ -7,14 +7,18 @@ public class ItemStack {
     private final String ingredientName;
     private final String label;
     private final int meta;
-    private final int amount;
+    private int amount;
     private final String nbt;
 
-    public ItemStack(String ingredientName, String label, int meta, int amount, String nbt) {
+    public ItemStack(String ingredientName, String label, int meta, String nbt, int amount) {
+        this(ingredientName, label, meta, nbt);
+        this.amount = amount;
+    }
+
+    public ItemStack(String ingredientName, String label, int meta, String nbt) {
         this.ingredientName = ingredientName;
         this.label = label;
         this.meta = meta;
-        this.amount = amount;
         this.nbt = nbt;
     }
 

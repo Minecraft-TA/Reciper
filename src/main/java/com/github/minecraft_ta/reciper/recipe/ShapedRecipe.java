@@ -5,12 +5,18 @@ import com.github.minecraft_ta.reciper.registry.RecipeRegistry;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.UUID;
 
 public class ShapedRecipe extends RecipeBase {
 
     private int width;
 
     private int height;
+
+    @Override
+    public String getRecipeName() {
+        return "shaped";
+    }
 
     /**
      * {@inheritDoc}
@@ -27,8 +33,16 @@ public class ShapedRecipe extends RecipeBase {
         this.inputs = new ItemStack[this.width * this.height];
 
         for (int i = 0; i < inputs.length; i++) {
-            this.inputs[i] = RecipeRegistry.ITEMSTACK_LOOKUP_MAP.get(inputStream.readInt());
+            int id = inputStream.readInt();
+            if (id != -1) {
+                this.inputs[i] = RecipeRegistry.ITEMSTACK_LOOKUP_MAP.get(id);
+            }
         }
+    }
+
+    @Override
+    public UUID getUUID() {
+        return UUID.randomUUID();
     }
 
     public int getWidth() {
