@@ -32,13 +32,17 @@ public class RecipeCalculator {
         visited.put(recipe, level);
 
         // Add recipe to tree
-        tree.addChild(new RecipeTree(recipe));
+        RecipeTree recipeNode = new RecipeTree(recipe);
+        tree.addChild(recipeNode);
 
         for (ItemStack item : recipe.getInputs()) {
             List<IRecipe> itemRecipes = recipes.get(item);
             if (itemRecipes != null) {
                 for (IRecipe r : itemRecipes) {
-                    calculateRecipes(recipes, visited, tree, r, level + 1);
+                    // Create a new recipe tree for the child recipe
+                    RecipeTree childNode = new RecipeTree(r);
+                    recipeNode.addChild(childNode);
+                    calculateRecipes(recipes, visited, childNode, r, level + 1);
                 }
             }
         }
