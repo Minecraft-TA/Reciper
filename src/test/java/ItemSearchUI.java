@@ -2,6 +2,7 @@ import com.github.minecraft_ta.reciper.calculation.RecipeCalculator;
 import com.github.minecraft_ta.reciper.calculation.RecipeTree;
 import com.github.minecraft_ta.reciper.ingredient.ItemStack;
 import com.github.minecraft_ta.reciper.recipe.IRecipe;
+import com.github.minecraft_ta.reciper.recipe.ShapedOreRecipe;
 import com.github.minecraft_ta.reciper.recipe.ShapedRecipe;
 import com.github.minecraft_ta.reciper.registry.RecipeRegistry;
 
@@ -17,6 +18,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 
 public class ItemSearchUI extends JFrame {
     private final JTextField searchField;
@@ -55,12 +57,12 @@ public class ItemSearchUI extends JFrame {
                             p.waitFor();
                             BufferedImage image = ImageIO.read(new File("src/test/resources/recipe-tree.png"));
                             // Run this on the main thread
-                        /*SwingUtilities.invokeLater(() -> {
-                            JFrame frame = new JFrame("Recipe Tree");
-                            frame.add(new JLabel(new ImageIcon(image)));
-                            frame.pack();
-                            frame.setVisible(true);
-                        });*/
+                            /*SwingUtilities.invokeLater(() -> {
+                                JFrame frame = new JFrame("Recipe Tree");
+                                frame.add(new JLabel(new ImageIcon(image)));
+                                frame.pack();
+                                frame.setVisible(true);
+                            });*/
                             JOptionPane.showMessageDialog(null, new JLabel(new ImageIcon(image)));
                         } catch (IOException | InterruptedException e1) {
                             e1.printStackTrace();
@@ -106,7 +108,67 @@ public class ItemSearchUI extends JFrame {
 
     public BufferedImage getRecipeImage(IRecipe recipe, int scale) {
         // Get the dimensions of the recipe
-        if (!(recipe instanceof ShapedRecipe)) {
+        if (recipe instanceof ShapedRecipe) {
+            ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
+            int width = shapedRecipe.getWidth();
+            int height = shapedRecipe.getHeight();
+
+            // Create a new image with the scaled dimensions
+            BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_ARGB);
+            Graphics graphics = image.getGraphics();
+
+            // Iterate through the recipe's grid of ItemStacks
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    ItemStack stack = shapedRecipe.getInputs()[x + y * width];
+                    if (stack != null) {
+                        // Get the image for the ItemStack
+                        BufferedImage itemImage = null;
+                        try {
+                            itemImage = ImageIO.read(new File("itempanel_icons/" + stack.getLabel() + ".png"));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        // Draw the image onto the recipe image
+                        graphics.drawImage(itemImage, x * scale, y * scale, scale, scale, null);
+                    } else {
+                        // Draw a blank space
+                        graphics.setColor(Color.WHITE);
+                        graphics.fillRect(x * scale, y * scale, scale, scale);
+                    }
+                }
+            }
+            return image;
+        } else if (recipe instanceof ShapedOreRecipe) {
+            ShapedOreRecipe shapedOreRecipe = (ShapedOreRecipe) recipe;
+            int width = shapedOreRecipe.getWidth();
+            int height = shapedOreRecipe.getHeight();
+
+            // Create a new image with the scaled dimensions
+            BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_ARGB);
+            Graphics graphics = image.getGraphics();
+
+            // Iterate through the recipe's grid of ItemStacks
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    List<ItemStack> ingredient = shapedOreRecipe.getIngredients()[x + y * width];
+                    if (ingredient == null || ingredient.isEmpty()) continue;
+                    ItemStack stack = ingredient.get(0);
+                    if (stack != null) {
+                        // Get the image for the ItemStack
+                        BufferedImage itemImage = null;
+                        try {
+                            itemImage = ImageIO.read(new File("itempanel_icons/" + stack.getLabel() + ".png"));
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        // Draw the image onto the recipe image
+                        graphics.drawImage(itemImage, x * scale, y * scale, scale, scale, null);
+                    }
+                }
+            }
+            return image;
+        } else {
             try {
                 ItemStack itemStack = recipe.getInputs()[0];
                 if (itemStack == null) {
@@ -124,33 +186,6 @@ public class ItemSearchUI extends JFrame {
                 throw new RuntimeException(e);
             }
         }
-
-        ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
-        int width = shapedRecipe.getWidth();
-        int height = shapedRecipe.getHeight();
-
-        // Create a new image with the scaled dimensions
-        BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_ARGB);
-        Graphics graphics = image.getGraphics();
-
-        // Iterate through the recipe's grid of ItemStacks
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                ItemStack stack = shapedRecipe.getInputs()[x + y * width];
-                if (stack != null) {
-                    // Get the image for the ItemStack
-                    BufferedImage itemImage = null;
-                    try {
-                        itemImage = ImageIO.read(new File("itempanel_icons/" + stack.getLabel() + ".png"));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    // Draw the image onto the recipe image
-                    graphics.drawImage(itemImage, x * scale, y * scale, scale, scale, null);
-                }
-            }
-        }
-        return image;
     }
 
     public void exportRecipeTreeToGraphviz(RecipeTree recipeTree, String filePath) {
@@ -159,6 +194,7 @@ public class ItemSearchUI extends JFrame {
             FileWriter fw = new FileWriter(filePath);
             BufferedWriter bw = new BufferedWriter(fw);
             bw.write("digraph G {");
+            bw.write("concentrate=true;");
             bw.newLine();
 
             // Recursively export the recipe tree
