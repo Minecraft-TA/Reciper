@@ -1,5 +1,6 @@
 package com.github.minecraft_ta.reciper.registry;
 
+import com.github.minecraft_ta.reciper.ingredient.FluidStack;
 import com.github.minecraft_ta.reciper.ingredient.ItemStack;
 import com.github.minecraft_ta.reciper.recipe.IRecipe;
 import com.github.minecraft_ta.reciper.recipe.RecipeFactory;
@@ -19,6 +20,8 @@ public class RecipeRegistry {
     public static final Map<ItemStack, List<IRecipe>> RECIPES = new Object2ObjectOpenHashMap<>();
     public static final Int2ObjectMap<ItemStack> ITEMSTACK_LOOKUP_MAP = new Int2ObjectOpenHashMap<>();
 
+    public static final Int2ObjectMap<FluidStack> FLUIDSTACK_LOOKUP_MAP = new Int2ObjectOpenHashMap<>();
+
     /**
      * Loads all recipes from the given binary file.
      *
@@ -34,6 +37,14 @@ public class RecipeRegistry {
                 int id = in.readInt();
                 ItemStack itemStack = new ItemStack(in.readUTF(), in.readUTF(), in.readInt(), in.readUTF());
                 ITEMSTACK_LOOKUP_MAP.put(id, itemStack);
+            }
+
+            // Read the fluid lookup file
+            int fluidLookupSize = in.readInt();
+            for (int i = 0; i < fluidLookupSize; i++) {
+                int id = in.readInt();
+                FluidStack fluidStack = new FluidStack(in.readUTF());
+                FLUIDSTACK_LOOKUP_MAP.put(id, fluidStack);
             }
 
             // Read the recipes
@@ -54,7 +65,7 @@ public class RecipeRegistry {
                     IRecipe recipe = RecipeFactory.createRecipe(type);
 
                     // Load the recipe
-                    recipe.loadRecipe(in);
+                    recipe.loadRecipe(in, stack);
 
                     // Add the recipe to the recipe list
                     RECIPES.computeIfAbsent(stack, k -> new ArrayList<>()).add(recipe);
