@@ -65,7 +65,7 @@ public class RecipeRegistry {
                     IRecipe recipe = RecipeFactory.createRecipe(type);
 
                     // Load the recipe
-                    recipe.loadRecipe(in, stack);
+                    recipe.loadRecipe(in);
 
                     // Add the recipe to the recipe list
                     RECIPES.computeIfAbsent(stack, k -> new ArrayList<>()).add(recipe);
