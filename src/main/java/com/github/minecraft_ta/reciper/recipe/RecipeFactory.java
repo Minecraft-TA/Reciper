@@ -26,7 +26,15 @@ public class RecipeFactory {
      * @return The new recipe instance.
      */
     public static IRecipe createRecipe(String type) {
-        return recipeMap.get(type).get();
+        Supplier<IRecipe> recipeSupplier = recipeMap.get(type);
+        if (type.startsWith("gt.")) {
+            return new GregTechRecipe();
+        }
+
+        if (recipeSupplier == null)
+            throw new IllegalArgumentException("Unknown recipe type: " + type);
+
+        return recipeSupplier.get();
     }
 
     /**
