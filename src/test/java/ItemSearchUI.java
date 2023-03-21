@@ -1,10 +1,9 @@
-import com.github.minecraft_ta.reciper.calculation.RecipeCalculator;
-import com.github.minecraft_ta.reciper.calculation.RecipeTree;
+import com.github.minecraft_ta.reciper.calculation.RecipeGraphBuilder;
+import com.github.minecraft_ta.reciper.calculation.RecipeNode;
 import com.github.minecraft_ta.reciper.ingredient.ItemStack;
-import com.github.minecraft_ta.reciper.recipe.IRecipe;
-import com.github.minecraft_ta.reciper.recipe.ShapedOreRecipe;
-import com.github.minecraft_ta.reciper.recipe.ShapedRecipe;
+import com.github.minecraft_ta.reciper.recipe.*;
 import com.github.minecraft_ta.reciper.registry.RecipeRegistry;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,6 +18,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 public class ItemSearchUI extends JFrame {
     private final JTextField searchField;
@@ -49,13 +49,15 @@ public class ItemSearchUI extends JFrame {
                     ItemStack selectedItem = itemList.getSelectedValue();
                     // Shedule the recipe calculation on a new thread
                     new Thread(() -> {
-                        RecipeTree recipeTree = RecipeCalculator.calculateRecipes(RecipeRegistry.RECIPES, selectedItem);
+                        RecipeNode recipeTree = RecipeGraphBuilder.buildRecipeGraph(selectedItem, RecipeRegistry.RECIPES);
                         exportRecipeTreeToGraphviz(recipeTree, "src/test/resources/recipe-tree.dot");
                         // Convert the dot file to a png and display it
                         try {
                             Process p = Runtime.getRuntime().exec("dot -Tpng src/test/resources/recipe-tree.dot -o src/test/resources/recipe-tree.png");
                             p.waitFor();
-                            BufferedImage image = ImageIO.read(new File("src/test/resources/recipe-tree.png"));
+                            Thread.sleep(1000);
+                            File input = new File("src/test/resources/recipe-tree.png");
+                            BufferedImage image = ImageIO.read(input);
                             // Run this on the main thread
                             /*SwingUtilities.invokeLater(() -> {
                                 JFrame frame = new JFrame("Recipe Tree");
@@ -88,7 +90,7 @@ public class ItemSearchUI extends JFrame {
         String searchText = searchField.getText();
         itemListModel.clear();
         for (ItemStack itemStack : RecipeRegistry.RECIPES.keySet()) {
-            if (itemStack.getLabel().contains(searchText)) {
+            if (itemStack.getLabel().toLowerCase().contains(searchText.toLowerCase())) {
                 itemListModel.addElement(itemStack);
             }
         }
@@ -99,7 +101,7 @@ public class ItemSearchUI extends JFrame {
         public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
             ItemStack itemStack = (ItemStack) value;
-            label.setIcon(new ImageIcon("itempanel_icons/" + itemStack.getLabel() + ".png"));
+            label.setIcon(new ImageIcon("recipe_icons/" + itemStack.hashCode() + ".png"));
             label.setText(itemStack.getLabel());
             label.setToolTipText(itemStack.getLabel());
             return label;
@@ -125,7 +127,7 @@ public class ItemSearchUI extends JFrame {
                         // Get the image for the ItemStack
                         BufferedImage itemImage = null;
                         try {
-                            itemImage = ImageIO.read(new File("itempanel_icons/" + stack.getLabel() + ".png"));
+                            itemImage = ImageIO.read(new File("recipe_icons/" + stack.hashCode() + ".png"));
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -158,7 +160,12 @@ public class ItemSearchUI extends JFrame {
                         // Get the image for the ItemStack
                         BufferedImage itemImage = null;
                         try {
-                            itemImage = ImageIO.read(new File("itempanel_icons/" + stack.getLabel() + ".png"));
+                            File input = new File("recipe_icons/" + stack.hashCode() + ".png");
+                            if (!input.exists()) {
+                                // Use a default image
+                                input = new File("recipe_icons/Iron Nugget.png");
+                            }
+                            itemImage = ImageIO.read(input);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -168,15 +175,82 @@ public class ItemSearchUI extends JFrame {
                 }
             }
             return image;
+        } else if (recipe instanceof ShapelessRecipe) {
+            ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
+            ItemStack[] inputs = shapelessRecipe.getInputs();
+            int width = 3;
+            int height = 3;
+
+            // Create a new image with the scaled dimensions
+            BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_ARGB);
+            Graphics graphics = image.getGraphics();
+
+            int x = 0;
+            int y = 0;
+            for (ItemStack ingredient : inputs) {
+                if (ingredient != null) {
+                    // Get the image for the ItemStack
+                    BufferedImage itemImage = null;
+                    try {
+                        itemImage = ImageIO.read(new File("recipe_icons/" + ingredient.hashCode() + ".png"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    // Draw the image onto the recipe image
+                    graphics.drawImage(itemImage, x * scale, y * scale, scale, scale, null);
+                }
+
+                x++;
+                if (x == width) {
+                    x = 0;
+                    y++;
+                }
+            }
+            return image;
+        } else if (recipe instanceof ShapelessOreRecipe) {
+            ShapelessOreRecipe shapelessRecipe = (ShapelessOreRecipe) recipe;
+            List<ItemStack>[] inputs = shapelessRecipe.getIngredients();
+            int width = 3;
+            int height = 3;
+
+            // Create a new image with the scaled dimensions
+            BufferedImage image = new BufferedImage(width * scale, height * scale, BufferedImage.TYPE_INT_ARGB);
+            Graphics graphics = image.getGraphics();
+
+            int x = 0;
+            int y = 0;
+            for (List<ItemStack> ingredient : inputs) {
+                if (ingredient != null) {
+                    // Get the image for the ItemStack
+                    BufferedImage itemImage = null;
+                    try {
+                        itemImage = ImageIO.read(new File("recipe_icons/" + ingredient.get(0).hashCode() + ".png"));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                    // Draw the image onto the recipe image
+                    graphics.drawImage(itemImage, x * scale, y * scale, scale, scale, null);
+                }
+
+                x++;
+                if (x == width) {
+                    x = 0;
+                    y++;
+                }
+            }
+            return image;
         } else {
             try {
+                if (recipe.getInputs().length == 0) {
+                    return new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+                }
                 ItemStack itemStack = recipe.getInputs()[0];
                 if (itemStack == null) {
-                    return null;
+                    return new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                 }
                 String label = itemStack.getLabel();
-                System.out.println(label);
-                File input = new File("itempanel_icons/" + label + ".png");
+                //System.out.println(label);
+                File input = new File("recipe_icons/" + itemStack.hashCode() + ".png");
                 if (!input.exists()) {
                     return new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
                 }
@@ -188,7 +262,7 @@ public class ItemSearchUI extends JFrame {
         }
     }
 
-    public void exportRecipeTreeToGraphviz(RecipeTree recipeTree, String filePath) {
+    public void exportRecipeTreeToGraphviz(RecipeNode recipeTree, String filePath) {
         try {
             // Create a new dot file
             FileWriter fw = new FileWriter(filePath);
@@ -197,8 +271,9 @@ public class ItemSearchUI extends JFrame {
             bw.write("concentrate=true;");
             bw.newLine();
 
-            // Recursively export the recipe tree
-            exportRecipeTreeToGraphviz(recipeTree, bw);
+            // Recursively export the recipe tree and prevent infinite loops
+            Set<RecipeNode> visited = new ObjectOpenHashSet<>();
+            exportRecipeTreeToGraphviz(recipeTree, bw, visited);
 
             bw.write("}");
             bw.close();
@@ -207,7 +282,7 @@ public class ItemSearchUI extends JFrame {
         }
     }
 
-    private void exportRecipeTreeToGraphviz(RecipeTree recipeTree, BufferedWriter bw) throws IOException {
+    private void exportRecipeTreeToGraphviz(RecipeNode recipeTree, BufferedWriter bw, Set<RecipeNode> discoveredNodes) throws IOException {
         // Write the recipe node
         IRecipe recipe = recipeTree.getRecipe();
         BufferedImage recipeImage = getRecipeImage(recipe, 64);
@@ -222,10 +297,12 @@ public class ItemSearchUI extends JFrame {
         bw.newLine();
 
         // Write the edges to the children
-        for (RecipeTree child : recipeTree.getChildren()) {
+        for (RecipeNode child : recipeTree.getChildren()) {
+            if (discoveredNodes.contains(child)) continue;
             bw.write("\"" + recipe.hashCode() + "\" -> \"" + child.getRecipe().hashCode() + "\";");
             bw.newLine();
-            exportRecipeTreeToGraphviz(child, bw);
+            discoveredNodes.add(child);
+            exportRecipeTreeToGraphviz(child, bw, discoveredNodes);
         }
     }
 
