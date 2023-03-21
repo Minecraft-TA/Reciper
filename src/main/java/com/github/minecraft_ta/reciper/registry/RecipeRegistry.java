@@ -35,7 +35,12 @@ public class RecipeRegistry {
 
             for (int i = 0; i < lookupSize; i++) {
                 int id = in.readInt();
-                ItemStack itemStack = new ItemStack(in.readUTF(), in.readUTF(), in.readInt(), in.readUTF());
+                String ingredientName = in.readUTF();
+                String label = in.readUTF();
+                int meta = in.readInt();
+                String nbt = in.readUTF();
+                if (nbt.equals("null")) nbt = null;
+                ItemStack itemStack = new ItemStack(ingredientName, label, meta, nbt);
                 ITEMSTACK_LOOKUP_MAP.put(id, itemStack);
             }
 
