@@ -2,18 +2,20 @@ package com.github.minecraft_ta.reciper.recipe;
 
 import com.github.minecraft_ta.reciper.ingredient.ItemStack;
 import com.github.minecraft_ta.reciper.registry.RecipeRegistry;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Set;
 
 public class ShapedOreRecipe implements IRecipe {
 
     private int width;
     private int height;
     private boolean mirrored;
+    private int outputAmount;
 
     private List<ItemStack>[] ingredients;
 
@@ -24,6 +26,7 @@ public class ShapedOreRecipe implements IRecipe {
 
     @Override
     public void loadRecipe(DataInputStream inputStream) throws IOException {
+        this.outputAmount = inputStream.readInt();
         this.width = inputStream.readInt();
         this.height = inputStream.readInt();
 
@@ -68,12 +71,19 @@ public class ShapedOreRecipe implements IRecipe {
     }
 
     @Override
+    public Set<ItemStack> getUniqueInputs() {
+        Set<ItemStack> uniqueInputs = new ObjectOpenHashSet<>();
+        for (List<ItemStack> ingredient : ingredients) {
+            if (ingredient != null) {
+                uniqueInputs.addAll(ingredient);
+            }
+        }
+        return uniqueInputs;
+    }
+
+    @Override
     public ItemStack[] getOutputs() {
         return new ItemStack[0];
     }
 
-    @Override
-    public UUID getUUID() {
-        return UUID.randomUUID();
-    }
 }

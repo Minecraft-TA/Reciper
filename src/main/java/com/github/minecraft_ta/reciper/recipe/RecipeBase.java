@@ -1,6 +1,9 @@
 package com.github.minecraft_ta.reciper.recipe;
 
 import com.github.minecraft_ta.reciper.ingredient.ItemStack;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+
+import java.util.Set;
 
 public abstract class RecipeBase implements IRecipe {
 
@@ -8,7 +11,10 @@ public abstract class RecipeBase implements IRecipe {
 
     protected ItemStack[] outputs;
 
-    protected ItemStack[] catalysts;
+    @Override
+    public Set<ItemStack> getUniqueInputs() {
+        return new ObjectOpenHashSet<>(inputs);
+    }
 
     public ItemStack[] getInputs() {
         return inputs;
@@ -18,7 +24,4 @@ public abstract class RecipeBase implements IRecipe {
         return outputs;
     }
 
-    public ItemStack[] getCatalysts() {
-        return catalysts;
-    }
 }
