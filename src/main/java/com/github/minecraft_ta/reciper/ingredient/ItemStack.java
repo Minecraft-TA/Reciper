@@ -57,4 +57,8 @@ public class ItemStack {
     public int hashCode() {
         return Objects.hash(this.ingredientName, this.meta, this.nbt);
     }
+
+    public void setAmount(int amount) {
+        this.amount = amount;
+    }
 }

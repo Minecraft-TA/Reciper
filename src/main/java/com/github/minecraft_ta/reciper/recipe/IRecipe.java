@@ -4,15 +4,16 @@ import com.github.minecraft_ta.reciper.ingredient.ItemStack;
 
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.UUID;
+import java.util.Set;
 
 /**
  * Base interface for all recipes.
  */
 public interface IRecipe {
 
-
     ItemStack[] getInputs();
+
+    Set<ItemStack> getUniqueInputs();
 
     ItemStack[] getOutputs();
 
@@ -24,8 +25,5 @@ public interface IRecipe {
      * @param inputStream The input stream to load from.
      */
     void loadRecipe(DataInputStream inputStream) throws IOException;
-
-    UUID getUUID();
-
 
 }
